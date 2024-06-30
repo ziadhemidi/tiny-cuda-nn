@@ -1,5 +1,5 @@
 /** @file   fourier.h
- *  @brief  Implementation of the Gaussian random Fourier encoding.
+ *  @brief  Implementation of the random Fourier encoding.
  */
 
 #pragma once
@@ -78,9 +78,9 @@ __global__ void fourier_encoding_backward(
 }
 
 template <typename T>
-class GaussianFourierEncoding : public Encoding<T> {
+class FourierEncoding : public Encoding<T> {
 public:
-    GaussianFourierEncoding(uint32_t input_dims, uint32_t enc_dim, float sigma)
+    FourierEncoding(uint32_t input_dims, uint32_t enc_dim, float sigma)
         : m_input_dims{input_dims}, m_enc_dim{enc_dim}, m_sigma{sigma} {
         m_output_dims = m_enc_dim * 2;
 
@@ -96,7 +96,7 @@ public:
         cudaMemcpy(d_B, m_B.data(), m_B.size() * sizeof(float), cudaMemcpyHostToDevice);
     }
 
-    ~GaussianFourierEncoding() {
+    ~FourierEncoding() {
         cudaFree(d_B);
     }
 
@@ -181,9 +181,8 @@ public:
     json hyperparams() const override {
         return {
             {"otype", "Fourier"},
-            {"input_dims", m_input_dims},
-            {"enc_dim", m_enc_dim},
-            {"sigma", m_sigma},
+            {"num_frequenies", m_enc_dim},
+            {"sigma", m_sigma}
         };
     }
 
@@ -194,7 +193,7 @@ private:
     uint32_t m_input_dims;
     uint32_t m_enc_dim;
     uint32_t m_output_dims;
-    float m_sigma;
+    float m_sigma = 10.0f;
 
     std::vector<float> m_B;
     float* d_B;

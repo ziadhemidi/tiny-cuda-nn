@@ -67,6 +67,10 @@ auto register_builtin_encodings() {
 		return new FrequencyEncoding<T>{encoding.value("n_frequencies", 12u), n_dims_to_encode};
 	});
 
+	register_encoding<T>(factories, "Fourier", [](uint32_t input_dims, uint32_t enc_dim, float sigma) {
+		return new FourierEncoding<T>{encoding.value("n_frequencies", 12u), n_dims_to_encode, };
+	});
+
 	auto grid_factory = [](uint32_t n_dims_to_encode, const json& encoding) {
 		return create_grid_encoding<T>(n_dims_to_encode, encoding);
 	};
@@ -91,9 +95,7 @@ auto register_builtin_encodings() {
 		return new TriangleWaveEncoding<T>{encoding.value("n_frequencies", 12u), n_dims_to_encode};
 	});
 
-	register_encoding<T>(factories, "Fourier", [](uint32_t n_dims_to_encode, const json& encoding) {
-		return new FourierEncoding<T>{encoding.value("n_frequencies", 12u), n_dims_to_encode};
-	});
+	
 	
 	auto nrc_factory = [](uint32_t n_dims_to_encode, const json& encoding) {
 		return new CompositeEncoding<T>{
