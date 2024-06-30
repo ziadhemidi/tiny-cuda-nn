@@ -190,7 +190,7 @@ __host__ __device__ void warp_activation_backward_in(Activation activation, cons
 		case Activation::Sine:
 			TCNN_PRAGMA_UNROLL
 			for (int t=0; t < result.num_elements; t++) {
-				result.x[t] = frag.x[t] * (T)(cosf(forward_frag_in.x[t]));
+				result.x[t] = (float)frag.x[t] * (T)(cosf((float)forward_frag_in.x[t] * 30.0f)) * 30.0f;
 			}
 			return;
 		case Activation::Sigmoid:
