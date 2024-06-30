@@ -337,8 +337,8 @@ public:
 		CHECK_THROW(is_contiguous());
 
 		// Define probability distribution
-		scale *= std::sqrt(6.0f / (float)fan_in());
-
+		scale *= std::sqrt(6.0f / (float)fan_in()) / 30.0f;
+		// np.sqrt(6/hidden_ch)/scale
 		// Sample initialized values
 		std::vector<T> new_data(n_elements());
 
