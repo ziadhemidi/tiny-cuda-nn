@@ -262,6 +262,10 @@ __host__ __device__ void warp_activation_backward(Activation activation, const f
 			// Sine requires stored pre-activations, which we don't have. We only
 			// write out the post-activations.
 			// assert(false); // Commented out due to isolated strange side-effects on Windows
+			TCNN_PRAGMA_UNROLL
+			for (int t=0; t < result.num_elements; t++) {
+				result.x[t] = (T)((float)frag.x[t] * 30.0f) * (T)(cosf((float)forward_frag_in.x[t] * 30.0f));
+			}
 			return;
 		case Activation::Sigmoid:
 			TCNN_PRAGMA_UNROLL
