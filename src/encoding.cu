@@ -37,7 +37,7 @@
 #include <tiny-cuda-nn/encodings/oneblob.h>
 #include <tiny-cuda-nn/encodings/spherical_harmonics.h>
 #include <tiny-cuda-nn/encodings/triangle_wave.h>
-#include <tiny-cuda-nn/encodings/fourier.h>
+// #include <tiny-cuda-nn/encodings/fourier.h>
 
 
 namespace tcnn {
@@ -67,9 +67,9 @@ auto register_builtin_encodings() {
 		return new FrequencyEncoding<T>{encoding.value("n_frequencies", 12u), n_dims_to_encode};
 	});
 
-	register_encoding<T>(factories, "Fourier", [](uint32_t input_dims, uint32_t enc_dim, float sigma) {
-		return new FourierEncoding<T>{encoding.value("n_frequencies", 12u), n_dims_to_encode, };
-	});
+	// register_encoding<T>(factories, "Fourier", [](uint32_t input_dims, uint32_t enc_dim, float sigma) {
+	// 	return new FourierEncoding<T>{encoding.value("n_frequencies", 12u), encoding.value("sigma")};
+	// });
 
 	auto grid_factory = [](uint32_t n_dims_to_encode, const json& encoding) {
 		return create_grid_encoding<T>(n_dims_to_encode, encoding);

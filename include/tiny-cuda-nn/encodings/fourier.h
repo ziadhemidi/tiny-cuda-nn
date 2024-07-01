@@ -18,30 +18,38 @@ namespace tcnn {
 template <typename T>
 __global__ void fourier_encoding(
     const uint32_t num_elements,
-    const uint32_t input_dims,
-    const uint32_t enc_dim,
+    const uint32_t num_frequenies,
     const float* __restrict__ B,
     MatrixView<const float> data_in,
     MatrixView<T> data_out
+    float* __restrict__ dy_dx
 ) {
     const uint32_t encoded_index = threadIdx.x + blockIdx.x * blockDim.x;
     if (encoded_index >= num_elements) return;
 
-    const uint32_t i = encoded_index / (enc_dim * 2);
-    const uint32_t j = encoded_index % (enc_dim * 2);
-    const uint32_t k = j / 2;
+    const uint32_t fan_out = num_frequenies / 2;
     
+	const uint32_t i = encoded_index / fan_out;
+	const uint32_t j = encoded_index - i * fan_out;
+
+	
+    const uint32_t k = j * 2;
     float projection = 0.0f;
     for (uint32_t l = 0; l < input_dims; ++l) {
         projection += data_in(l, i) * B[l * enc_dim + k];
     }
     projection *= 2.0f * PI;
 
-    if (j % 2 == 0) {
-        data_out(j, i) = __sinf(projection);
-    } else {
-        data_out(j, i) = __cosf(projection);
-    }
+    float sin_proj = __sinf(projection);
+    float cos_proj = __cosf(projection);
+
+    // merge the sin and cos into a single vector
+    data_out = merge(sin_proj, cos_proj);
+
+    if (dy_dx != nullptr) {
+        for (uint32_t l = 0; l < input_dims; ++l) {
+            dy_dx[i * fan_out_encoded + j] = data_in(l, i) * 2.0f * PI * sin_proj;
+        }     
 }
 
 template <typename T>
@@ -79,6 +87,22 @@ __global__ void fourier_encoding_backward(
 
 template <typename T>
 class FourierEncoding : public Encoding<T> {
+    /*
+    class FourierFeatures(nn.Module):
+    def __init__(self, pos_dim, f_dim, sigma=5, learned=False):
+        super(FourierFeatures, self).__init__()
+        assert f_dim % 2 == 0, 'number of channels must be divisible by 2.'
+        enc_dim = int(f_dim / 2)
+        # Todo: initialize the frequencies with a random normal distribution with and multiply it with sigma, the shape should be (pos_dim, enc_dim)
+        self.B = torch.randn([pos_dim, enc_dim]) * sigma
+    def forward(self, pos):
+        # Todo: calculate the fourier features
+        #pos_enc = 2*np.pi * torch.matmul(pos, self.B.to(pos.device)) + self.b.to(pos.device).unsqueeze(0)
+        pos_enc =  2*np.pi * torch.matmul(pos, self.B.to(pos.device)) 
+        #pos_enc = np.sqrt(2) * torch.cos(pos_enc)
+        pos_enc = torch.cat([torch.sin(pos_enc), torch.cos(pos_enc)], dim=-1)
+        return pos_enc
+    */
 public:
     FourierEncoding(uint32_t input_dims, uint32_t enc_dim, float sigma)
         : m_input_dims{input_dims}, m_enc_dim{enc_dim}, m_sigma{sigma} {
